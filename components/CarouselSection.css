@@ -1,0 +1,38 @@
+.carousel-section {
+  position: relative;
+  margin-top: -1px; /* overlaps the hero's last pixel row so no light hairline shows between sections */
+  --cs-bg: #141414;
+  --cs-ink: #ffffff;
+  width: 100%;
+  padding: clamp(48px, 8vw, 120px) 0;
+  background: var(--cs-bg);
+  color: var(--cs-ink);
+}
+
+.carousel-section--light {
+  --cs-bg: #f3f3f1;
+  --cs-ink: #111111;
+}
+
+.carousel-section__heading {
+  margin: 0 0 clamp(24px, 4vw, 56px);
+  padding: 0 7.1%;
+  font-family: var(--font-display, 'Bodoni Moda', 'Didot', serif);
+  font-weight: 400;
+  font-size: clamp(28px, 4vw, 56px);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+
+/* The stage needs an explicit height: the carousel fills 100% of it. */
+.carousel-section__stage {
+  position: relative;
+  width: 100%;
+  height: clamp(560px, 90vh, 920px);
+}
+
+@media (max-width: 860px) {
+  .carousel-section__stage {
+    height: clamp(480px, 78vh, 640px);
+  }
+}

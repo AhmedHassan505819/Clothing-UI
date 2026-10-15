@@ -1,0 +1,62 @@
+.hero{--edge:6.7%;position:relative;width:100%;min-height:620px;height:100svh;overflow:hidden;isolation:isolate}
+
+/* split background */
+.bg{position:absolute;inset:0;z-index:0;display:grid;grid-template-columns:1fr 1fr}
+.bg-l{background:linear-gradient(135deg,#f2f2f2 0%,#e6e6e6 100%)}
+.bg-r{background:radial-gradient(120% 90% at 30% 60%,#1e1e1e 0%,#141414 100%)}
+
+/* dual-ink layers: same content, dark on the left half, white on the right half */
+.ink{position:absolute;inset:0;z-index:1;pointer-events:none}
+.ink-dark{color:var(--ink);clip-path:inset(0 50% 0 0)}
+.ink-light{color:var(--white);clip-path:inset(0 0 0 50%)}
+
+.logo{position:absolute;top:8.7%;left:50%;transform:translate(-50%,-50%);
+  font-family:var(--serif);font-weight:400;font-size:clamp(20px,2.15vw,36px);
+  letter-spacing:.2em;margin-right:-.2em;white-space:nowrap;line-height:1}
+.title{position:absolute;left:var(--edge);width:calc(100% - 2 * var(--edge));top:45.3%;transform:translateY(-51%);display:block;overflow:visible}
+.title text{font-family:var(--serif);font-weight:600;fill:currentColor;font-kerning:normal;text-rendering:geometricPrecision}
+
+/* photo layer: cast shade falls on the wall behind him (visible on the light half and over the white lettering) */
+.model-wrap{position:absolute;z-index:2;bottom:0;left:38.6%;width:26.7%;height:78.3%}
+.model-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:bottom center;display:block;
+  filter:drop-shadow(-26px 12px 22px rgba(0,0,0,.42)) drop-shadow(-70px 26px 70px rgba(0,0,0,.30))}
+
+/* bottom fade: the light half melts into the same black as the section below */
+.hero::after{content:"";position:absolute;z-index:2;left:0;right:0;bottom:0;height:24%;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(20,20,20,0) 0%,rgba(20,20,20,.5) 55%,#141414 100%)}
+
+/* nav: both groups are pinned to the same side margin (--edge) as the headline, copy and button */
+.nav{position:absolute;z-index:3;top:8.7%;left:var(--edge);right:var(--edge);transform:translateY(-50%);display:flex;justify-content:space-between;align-items:center}
+.nav-group{display:flex;align-items:center;gap:clamp(28px,4.2vw,72px)}
+.nav a{position:relative;font-size:15px;letter-spacing:.06em;font-weight:400;line-height:1;white-space:nowrap}
+.nav .l{color:var(--ink);font-weight:500}
+.nav .r{color:var(--white);font-weight:300}
+.nav .home{font-weight:600;margin-left:-.07em}
+.nav .about{margin-right:-.06em}
+.nav .home::after{content:"";position:absolute;left:0;right:0;bottom:-14px;height:1px;background:currentColor}
+.menu{position:absolute;z-index:3;top:8.7%;right:var(--edge);transform:translateY(-50%);width:28px;height:20px;background:none;border:0;cursor:pointer;display:none;flex-direction:column;justify-content:center;gap:4px}
+.menu span{display:block;height:1px;background:var(--white);width:26px}
+
+/* copy + CTA */
+.copy{position:absolute;z-index:3;left:var(--edge);top:60.6%;font-size:13px;line-height:24px;letter-spacing:.14em;color:#1c1c1c;max-width:340px;font-weight:400}
+.cta{position:absolute;z-index:3;left:var(--edge);top:72.6%;display:inline-flex;align-items:center;justify-content:space-between;gap:28px;
+  width:195px;height:50px;padding:0 28px;border:1px solid #222;color:var(--ink);
+  font-size:11px;font-weight:600;letter-spacing:.17em;transition:background .2s,color .2s}
+.cta svg{width:20px;height:10px;flex:none}
+.cta:hover{background:var(--ink);color:var(--paper)}
+
+@media (max-width:860px){
+  .nav{display:none}
+  .hero{--edge:6%}
+  .hero::after{height:14%}
+  .logo{left:var(--edge);transform:translate(0,-50%);margin-right:0;font-size:20px;letter-spacing:.16em}
+  .ink-dark,.ink-light{clip-path:none}
+  .ink-light{clip-path:inset(0 0 0 50%)}
+  .ink-dark{clip-path:inset(0 50% 0 0)}
+  .title{top:36%}
+  .model-wrap{left:22%;width:56%;height:64%}
+  .copy{top:auto;bottom:calc(120px + env(safe-area-inset-bottom,0px));left:var(--edge);font-size:12px;line-height:22px;max-width:60%;color:#fff;mix-blend-mode:difference}
+  .cta{top:auto;bottom:calc(40px + env(safe-area-inset-bottom,0px));left:var(--edge)}
+  .menu{display:flex}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}

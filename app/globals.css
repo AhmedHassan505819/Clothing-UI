@@ -1,0 +1,34 @@
+@font-face {
+  font-family: 'Anty Display';
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+  src: url('/fonts/anty-display-400.woff') format('woff');
+}
+@font-face {
+  font-family: 'Anty Display';
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+  src: url('/fonts/anty-display-600.woff') format('woff');
+}
+
+:root {
+  --paper: #ebebeb;
+  --ink: #0a0a0a;
+  --night: #171717;
+  --white: #fff;
+  --serif: 'Anty Display', 'Bodoni Moda', 'Didot', 'Times New Roman', serif;
+  --sans: var(--font-sans), 'Helvetica Neue', Arial, sans-serif;
+  box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: inherit; margin: 0; padding: 0; }
+html, body { min-height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--night);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid #888; outline-offset: 4px; }
