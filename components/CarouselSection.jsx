@@ -36,15 +36,11 @@ export default function CarouselSection({
       <div className="carousel-section__stage">
         <FlexCarousel
           items={items}
-          preset="liquid"
-          intro="rise"
           cardHeight={0.74}
-          gap={12}
-          squeeze={0.2}
-          fit="natural"
-          radius={0}
-          focusOnClick
-          captions
+          autoplay
+          interval={3.5}
+          pauseOnHover={false}
+          straightBelow={860}
           captureWheel={false}
           {...carouselProps}
         />

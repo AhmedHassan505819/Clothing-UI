@@ -183,6 +183,7 @@ uniform float uCurl;
 uniform float uDispersion;
 uniform float uStrength;
 uniform float uSceneAlpha;
+uniform float uLift;
 out vec4 fragColor;
 
 void main() {
@@ -206,8 +207,8 @@ void main() {
   float slope = 16.0 * t * t * (1.0 - t) * (1.0 - t);
   float reachX = rel.x / (uResolution.x * 0.5);
   float side = smoothstep(0.02, 0.3, abs(reachX)) * (uCurl == 0.0 ? sign(reachX) : uCurl);
-  float lift = ramp * side * uFlow * uStrength;
-  vec2 swirl = along * along.y * side * slope * uFlow * uStrength * 0.35;
+  float lift = ramp * side * uFlow * uStrength * uLift;
+  vec2 swirl = along * along.y * side * slope * uFlow * uStrength * 0.35 * uLift;
   vec2 drift = vec2(0.0, -lift) - swirl;
   vec2 shifted = uv + drift / uResolution;
 
@@ -218,7 +219,8 @@ void main() {
   gy *= min(1.0, 3.0 / max(length(gy * texels), 1e-4));
 
   vec4 color = textureGrad(tScene, shifted, gx, gy);
-  vec2 spread = vec2(0.0, side * slope * uFlow * uStrength) / uResolution * uDispersion;
+  float splitAmt = side * slope * uFlow * uStrength;
+  vec2 spread = mix(vec2(splitAmt, 0.0), vec2(0.0, splitAmt), uLift) / uResolution * uDispersion;
   float spreadPx = length(spread * texels);
   if (color.a > 0.002 && spreadPx > 0.25) {
     vec3 base = color.rgb / color.a;
@@ -279,7 +281,9 @@ const FlexCarousel = ({
   autoplay = false,
   interval = 4,
   captions = true,
-  captureWheel = true,
+  captureWheel = false,
+  straightBelow = 0,
+  pauseOnHover = true,
   onChange,
   onSelect,
   className = '',
@@ -323,7 +327,9 @@ const FlexCarousel = ({
       focusOnClick,
       autoplay,
       interval,
-      captureWheel
+      captureWheel,
+      straightBelow,
+      pauseOnHover
     };
     engineRef.current?.wake();
   });
@@ -401,7 +407,8 @@ const FlexCarousel = ({
       uCurl: { value: 0 },
       uDispersion: { value: 0 },
       uStrength: { value: 0 },
-      uSceneAlpha: { value: 0 }
+      uSceneAlpha: { value: 0 },
+      uLift: { value: 1 }
     };
     const lensMesh = new Mesh(gl, {
       geometry: new Triangle(gl),
@@ -425,6 +432,7 @@ const FlexCarousel = ({
     let goal = 0;
     let mode = 'spring';
     let wheelAt = 0;
+    let verticalAt = -Infinity;
     let raf = 0;
     let last = performance.now();
     let visible = true;
@@ -798,7 +806,7 @@ const FlexCarousel = ({
         introState.done &&
         focus.target === 0 &&
         focus.t < 0.01 &&
-        !pointer.over &&
+        (!s.pauseOnHover || !pointer.over) &&
         !pointer.down &&
         !hasFocus &&
         mode === 'spring' &&
@@ -962,6 +970,7 @@ const FlexCarousel = ({
         lensUniforms.uDispersion.value = s.dispersion * 0.12 * (1 + Math.abs(deform) * liquidAmount * 1.2);
         lensUniforms.uStrength.value = effects.strength * (1 - focusEase);
         lensUniforms.uSceneAlpha.value = effects.sceneAlpha;
+        lensUniforms.uLift.value = s.straightBelow && width <= s.straightBelow ? 0 : 1;
         renderer.render({ scene: lensMesh });
       }
 
@@ -1124,8 +1133,13 @@ const FlexCarousel = ({
         dy = 0;
       }
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? height : 1;
-      const horizontal = Math.abs(dx) > Math.abs(dy);
-      if (!horizontal && !s.captureWheel) return;
+      const horizontal = Math.abs(dx) > Math.abs(dy) * 1.5; // only a clearly sideways gesture is ours
+      const wheelNow = performance.now();
+      if (!horizontal && !s.captureWheel) {
+        verticalAt = wheelNow; // the page is scrolling: leave it alone
+        return;
+      }
+      if (horizontal && wheelNow - verticalAt < 400) return;
       e.preventDefault();
       skipIntro();
       interactedAt = performance.now();
@@ -1140,6 +1154,7 @@ const FlexCarousel = ({
     const onKeyDown = e => {
       const s = settingsRef.current;
       if (!s) return;
+      if (!container.matches(':focus-visible')) return; // a mouse click must not steal arrow/space page scrolling
       const m = metrics(s);
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
@@ -1172,7 +1187,7 @@ const FlexCarousel = ({
     };
 
     const onFocus = () => {
-      hasFocus = true;
+      hasFocus = container.matches(':focus-visible');
     };
     const onBlur = () => {
       hasFocus = false;

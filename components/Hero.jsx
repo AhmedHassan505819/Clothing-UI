@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import Link from 'next/link';
+import HeroModel from './HeroModel';
 
 import './Hero.css';
 
@@ -44,14 +44,7 @@ export default function Hero() {
       </div>
 
       <div className="model-wrap">
-        <Image
-          src="/images/model.webp"
-          width={427}
-          height={774}
-          priority
-          sizes="(max-width: 860px) 56vw, 27vw"
-          alt="Model in a metallic silver jacket and sunglasses, leaning against a split black and white wall"
-        />
+        <HeroModel src="/images/model.webp" width={427} height={774} alt="Model in a metallic silver jacket and sunglasses, leaning against a split black and white wall" />
       </div>
 
       <nav className="nav" aria-label="Primary">
