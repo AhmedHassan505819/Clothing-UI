@@ -18,7 +18,7 @@ const CTA = { label: 'GET STARTED', href: '#collection' };
 function Wordmark({ label }) {
   return (
     <>
-      <div className="logo">ANTYTHESIS</div>
+      {/* <div className="logo">ANTYTHESIS</div> */}
       <svg className="title" viewBox="0 0 1381 200" {...(label ? { role: 'img', 'aria-label': label } : {})}>
         <text x="-5.34" y="175" fontSize="205.58" letterSpacing="1.228">
           ANTYTHESIS

@@ -1,0 +1,511 @@
+.lookbook {
+  --edge: 6.7%;
+  --lb-bg: #0b0b0b;
+  --lb-muted: rgba(255, 255, 255, 0.64);
+  position: relative;
+  margin-top: -1px; /* same trick as the carousel: no hairline between sections */
+  background: var(--lb-bg);
+  color: #fff;
+}
+
+/* Slanted top edge. The wedge is the carousel's black, cut on the same angle as the sun line in the photo. */
+.lookbook::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: clamp(40px, 7vw, 112px);
+  background: #141414;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  pointer-events: none;
+}
+
+.lookbook__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Scroll distance: one screen plus 85% of a screen per step between beats. */
+.lookbook__track {
+  position: relative;
+  height: calc(100svh + (var(--count) - 1) * 85svh);
+}
+
+.lookbook__stage {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 100svh;
+  overflow: hidden;
+}
+
+/* A hard-edged wash of light on the lower right, like the sun on the wall in the photo.
+   --p (0 to 1, set from scroll) slides its edge, so the light moves as you go. */
+.lookbook__beam {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    transparent calc(44% + var(--p, 0) * 18%),
+    rgba(236, 232, 224, 0.055) calc(44% + var(--p, 0) * 18%)
+  );
+  /* fade in from the top so there is no hard step against the carousel above */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 clamp(80px, 14svh, 160px));
+  mask-image: linear-gradient(to bottom, transparent 0, #000 clamp(80px, 14svh, 160px));
+}
+
+.lookbook__grid {
+  position: relative;
+  height: 100%;
+  padding: clamp(64px, 10svh, 112px) var(--edge) clamp(24px, 5svh, 56px);
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  column-gap: clamp(32px, 6vw, 120px);
+  align-items: center;
+}
+
+/* ---------- photo ---------- */
+
+.lookbook__media {
+  display: flex;
+  justify-content: center;
+}
+
+/* 2:3 like the photo. Width is capped so the frame always fits the screen height. */
+.lookbook__frame {
+  position: relative;
+  width: min(100%, 54svh);
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: #1a1a1a;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.lookbook__layer {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.lookbook__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------- hotspots ---------- */
+
+/* The button is the hit area. Its visuals (.lookbook__ui) are scaled by 1/zoom so dots and
+   cards stay the same size on screen while the photo zooms underneath them. */
+.lookbook__dot {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lookbook__ui {
+  position: absolute;
+  left: 22px;
+  top: 22px;
+  width: 0;
+  height: 0;
+  transform: scale(calc(1 / var(--s, 1)));
+  transform-origin: 0 0;
+}
+
+.lookbook__ring,
+.lookbook__core {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.lookbook__ring {
+  left: -14px;
+  top: -14px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(2px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.lookbook__ring::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  opacity: 0;
+}
+
+.lookbook__core {
+  left: -3.5px;
+  top: -3.5px;
+  width: 7px;
+  height: 7px;
+  background: #fff;
+}
+
+/* On the full-look view every dot pulses, inviting a click */
+.lookbook__dot[data-overview] .lookbook__ring::after {
+  animation: lookbook-pulse 2.4s ease-out infinite;
+}
+
+/* Zoomed in, the dots that aren't the current detail go quiet */
+.lookbook__dot:not([data-overview]):not([data-active]) .lookbook__ring {
+  opacity: 0.35;
+  transform: scale(0.7);
+}
+
+.lookbook__dot:focus-visible {
+  outline: none;
+}
+.lookbook__dot:focus-visible .lookbook__ring {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.lookbook__card {
+  position: absolute;
+  top: 0;
+  min-width: 180px;
+  padding: 12px 16px 13px;
+  display: grid;
+  gap: 4px;
+  background: rgba(12, 12, 12, 0.82);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-50%);
+  transition: opacity 0.4s ease 0.15s, visibility 0s linear 0.55s;
+  pointer-events: none;
+}
+.lookbook__dot[data-side='right'] .lookbook__card {
+  left: 28px;
+}
+.lookbook__dot[data-side='left'] .lookbook__card {
+  right: 28px;
+}
+/* top / bottom open centred on the dot, so the card can't run off the edge of a narrow photo */
+.lookbook__dot[data-side='top'] .lookbook__card {
+  left: 0;
+  top: -26px;
+  transform: translate(-50%, -100%);
+}
+.lookbook__dot[data-side='bottom'] .lookbook__card {
+  left: 0;
+  top: 26px;
+  transform: translateX(-50%);
+}
+.lookbook__dot[data-active]:not([data-overview]) .lookbook__card {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.4s ease 0.35s, visibility 0s;
+}
+
+.lookbook__card-name {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.lookbook__card-price {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--lb-muted);
+}
+
+@keyframes lookbook-pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+/* ---------- copy ---------- */
+
+.lookbook__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(28px, 5svh, 56px);
+  max-width: 560px;
+}
+
+.lookbook__eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--lb-muted);
+}
+
+/* all beats sit in the same grid cell, so the block is as tall as the tallest one */
+.lookbook__beats {
+  display: grid;
+}
+
+.lookbook__beat {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(26px);
+  transition: opacity 0.5s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), visibility 0s linear 0.5s;
+}
+.lookbook__beat[data-state='past'] {
+  transform: translateY(-26px);
+}
+.lookbook__beat[data-state='active'] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.7s ease 0.2s, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s, visibility 0s;
+}
+
+.lookbook__label {
+  margin-bottom: clamp(14px, 2.4svh, 24px);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lb-muted);
+}
+
+.lookbook__title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(40px, 5.4vw, 92px);
+  line-height: 1.02;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+.lookbook__text {
+  margin-top: clamp(18px, 3svh, 32px);
+  max-width: 400px;
+  font-size: 14px;
+  line-height: 26px;
+  letter-spacing: 0.06em;
+  color: var(--lb-muted);
+}
+
+.lookbook__buy {
+  margin-top: clamp(24px, 4.5svh, 44px);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+}
+
+/* same button as the hero CTA, in white */
+.lookbook__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  min-width: 195px;
+  height: 50px;
+  padding: 0 28px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.17em;
+  transition: background 0.2s, color 0.2s;
+}
+.lookbook__cta svg {
+  width: 20px;
+  height: 10px;
+  flex: none;
+}
+.lookbook__cta:hover {
+  background: #fff;
+  color: var(--ink, #0a0a0a);
+}
+
+.lookbook__price {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+}
+.lookbook__price span:last-child {
+  color: var(--lb-muted);
+}
+
+.lookbook__hint {
+  margin-top: clamp(24px, 4svh, 40px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--lb-muted);
+}
+.lookbook__hint-line {
+  position: relative;
+  width: 44px;
+  height: 1px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.25);
+}
+.lookbook__hint-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  transform: translateX(-100%);
+  animation: lookbook-hint 2.2s ease-in-out infinite;
+}
+@keyframes lookbook-hint {
+  0% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ---------- progress ---------- */
+
+.lookbook__progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.lookbook__ticks {
+  display: flex;
+  list-style: none;
+}
+.lookbook__tick {
+  position: relative;
+  width: 44px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.lookbook__tick::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.28);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.lookbook__tick:hover::after {
+  background: rgba(255, 255, 255, 0.6);
+}
+.lookbook__tick[data-active]::after {
+  background: #fff;
+  transform: scaleY(2);
+}
+.lookbook__count {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+  color: var(--lb-muted);
+}
+
+/* ---------- phones and small tablets: photo on top, copy underneath ---------- */
+
+@media (max-width: 860px) {
+  .lookbook__grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    row-gap: clamp(14px, 2.4svh, 24px);
+    padding: clamp(52px, 9svh, 80px) var(--edge) clamp(16px, 3svh, 28px);
+    align-items: start;
+  }
+  .lookbook__frame {
+    width: min(100%, 36svh);
+  }
+  .lookbook__copy {
+    height: 100%;
+    max-width: none;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .lookbook__eyebrow {
+    display: none;
+  }
+  .lookbook__label {
+    margin-bottom: 10px;
+    font-size: 11px;
+  }
+  .lookbook__title {
+    font-size: clamp(32px, 9.5vw, 48px);
+  }
+  .lookbook__text {
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 22px;
+    letter-spacing: 0.04em;
+  }
+  .lookbook__buy {
+    margin-top: 16px;
+    gap: 10px 20px;
+  }
+  .lookbook__cta {
+    height: 44px;
+    min-width: 170px;
+    padding: 0 22px;
+  }
+  .lookbook__hint {
+    margin-top: 16px;
+  }
+  /* the narrow photo would clip the cards; the name and price already show under the photo */
+  .lookbook__card {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lookbook__dot[data-overview] .lookbook__ring::after,
+  .lookbook__hint-line::after {
+    animation: none;
+  }
+  .lookbook__beat,
+  .lookbook__beat[data-state='active'] {
+    transition: none;
+  }
+}
